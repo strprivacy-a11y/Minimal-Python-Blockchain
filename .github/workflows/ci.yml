@@ -23,7 +23,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify Python syntax
-        run: python -m py_compile index.py app/main.py app/blockchain.py app/schemas.py
+        run: python -m py_compile index.py app/main.py app/blockchain.py app/schemas.py app/storage.py
 
       - name: Verify shell scripts
         run: |
@@ -36,3 +36,17 @@ jobs:
           test -f frontend/app.js
           test -f frontend/styles.css
           test -f frontend/config.js
+
+      - name: Verify JSON configs
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for path in [
+              "vercel.json",
+              "frontend/vercel.json",
+              "railway.json",
+          ]:
+              json.loads(Path(path).read_text())
+          print("json-ok")
+          PY

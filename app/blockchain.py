@@ -8,26 +8,51 @@ from urllib.parse import urlparse
 
 import requests
 
+from app.storage import StateStore
+
 
 @dataclass
 class Blockchain:
     node_id: str
     difficulty_prefix: str = "0000"
+    state_store: StateStore = field(default_factory=StateStore)
     chain: list[dict[str, Any]] = field(default_factory=list)
     current_transactions: list[dict[str, Any]] = field(default_factory=list)
     nodes: set[str] = field(default_factory=set)
 
     def __post_init__(self) -> None:
+        persisted_state = self.state_store.load()
+        if persisted_state:
+            self.chain = persisted_state.get("chain", [])
+            self.current_transactions = persisted_state.get("current_transactions", [])
+            self.nodes = set(persisted_state.get("nodes", []))
+
         if not self.chain:
             self.create_block(proof=100, previous_hash="1")
+        else:
+            self._persist_state()
+
+    def _persist_state(self) -> None:
+        self.state_store.save(
+            {
+                "chain": self.chain,
+                "current_transactions": self.current_transactions,
+                "nodes": sorted(self.nodes),
+            }
+        )
 
     def register_node(self, address: str) -> str:
-        parsed = urlparse(address)
-        normalized = parsed.netloc or parsed.path
-        if not normalized:
-            raise ValueError("Invalid node address")
+        normalized = self.normalize_node_address(address)
         self.nodes.add(normalized)
+        self._persist_state()
         return normalized
+
+    @staticmethod
+    def normalize_node_address(address: str) -> str:
+        parsed = urlparse(address if "://" in address else f"http://{address}")
+        if not parsed.netloc:
+            raise ValueError("Invalid node address")
+        return f"{parsed.scheme}://{parsed.netloc}"
 
     def create_block(self, proof: int, previous_hash: str | None = None) -> dict[str, Any]:
         block = {
@@ -39,6 +64,7 @@ class Blockchain:
         }
         self.current_transactions = []
         self.chain.append(block)
+        self._persist_state()
         return block
 
     def create_transaction(self, sender: str, recipient: str, amount: float) -> int:
@@ -49,6 +75,7 @@ class Blockchain:
                 "amount": amount,
             }
         )
+        self._persist_state()
         return self.last_block["index"] + 1
 
     @property
@@ -96,7 +123,7 @@ class Blockchain:
         max_length = len(self.chain)
 
         for node in self.nodes:
-            response = requests.get(f"http://{node}/chain", timeout=5)
+            response = requests.get(f"{node}/chain", timeout=5)
             if response.status_code != 200:
                 continue
 
@@ -110,5 +137,7 @@ class Blockchain:
                     self.chain = chain
                     replaced = True
 
-        return replaced
+        if replaced:
+            self._persist_state()
 
+        return replaced

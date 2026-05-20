@@ -31,6 +31,8 @@
 - `railway.json` : ตัวอย่าง config สำหรับ Railway
 - `Procfile` : start command สำหรับ PaaS ที่รองรับ Procfile
 - `.github/workflows/ci.yml` : GitHub Actions สำหรับ syntax/config checks
+- `.github/workflows/vercel-backend.yml` : GitHub Actions deploy backend ไป Vercel
+- `.github/workflows/vercel-frontend.yml` : GitHub Actions deploy frontend ไป Vercel
 
 ## ติดตั้ง
 
@@ -77,6 +79,13 @@ http://127.0.0.1:8000/ui
 4. deploy
 5. เปิด `https://your-project.vercel.app/ui`
 
+ถ้าต้องการใช้ state ที่ไม่หายง่าย ให้ตั้ง environment variable:
+
+```text
+REDIS_URL=redis://...
+BLOCKCHAIN_STATE_KEY=minimal-python-blockchain:state
+```
+
 ### ทางที่ 2: Deploy UI บน Vercel และ deploy backend บน Render หรือ Railway
 
 เหมาะกับการใช้งานจริงกว่า เพราะ backend จะรันเป็น service ต่อเนื่อง
@@ -86,6 +95,7 @@ backend:
 - ใช้ root repo นี้บน Render หรือ Railway
 - start command คือ `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - มีไฟล์ `render.yaml`, `railway.json`, `Procfile` ให้แล้ว
+- ถ้าต้องการ persistence ข้าม restart ให้ตั้ง `REDIS_URL`
 
 frontend:
 
@@ -110,6 +120,28 @@ window.BLOCKCHAIN_CONFIG = {
 ```text
 https://your-frontend.vercel.app/?api=https://your-backend.example.com
 ```
+
+## GitHub Actions Deploy
+
+workflow deploy ของ Vercel ถูกเตรียมไว้ 2 ตัว:
+
+- backend: `.github/workflows/vercel-backend.yml`
+- frontend: `.github/workflows/vercel-frontend.yml`
+
+GitHub repository secrets ที่ต้องตั้ง:
+
+```text
+VERCEL_TOKEN
+VERCEL_BACKEND_ORG_ID
+VERCEL_BACKEND_PROJECT_ID
+VERCEL_FRONTEND_ORG_ID
+VERCEL_FRONTEND_PROJECT_ID
+```
+
+พฤติกรรม:
+
+- `pull_request` จะ deploy เป็น preview
+- `push` ไป `main` จะ deploy เป็น production
 
 ## รันหลายโหนด
 
@@ -190,3 +222,4 @@ curl -X POST http://127.0.0.1:8000/nodes/resolve
 - ถ้าจะใช้ Vercel แบบแยก frontend/backend ให้ตั้งค่า backend URL ใน `frontend/config.js` ก่อน deploy
 - ถ้าจะใช้ Vercel แบบ backend เดียวทั้ง UI และ API ให้เปิดที่ `/ui` ไม่ใช่ `/`
 - GitHub Actions จะรันเช็ก syntax ของ Python และ shell script ทุก push/PR
+- ถ้าตั้ง `REDIS_URL` ระบบจะพยายามเก็บ `chain`, `pending transactions`, และ `nodes` ลง Redis

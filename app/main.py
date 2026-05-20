@@ -8,12 +8,14 @@ from fastapi.staticfiles import StaticFiles
 
 from app.blockchain import Blockchain
 from app.schemas import MessageResponse, NodeList, TransactionCreate
+from app.storage import create_state_store
 
 
 BASE_DIR = Path(__file__).resolve().parent
 STATIC_DIR = BASE_DIR / "static"
 node_id = uuid4().hex
-blockchain = Blockchain(node_id=node_id)
+state_store = create_state_store()
+blockchain = Blockchain(node_id=node_id, state_store=state_store)
 
 app = FastAPI(
     title="Blockchain Simulator API",
@@ -35,6 +37,7 @@ def root() -> dict[str, str]:
     return {
         "message": "Blockchain simulator is running.",
         "node_id": node_id,
+        "storage_backend": state_store.backend_name,
     }
 
 
@@ -52,6 +55,7 @@ def get_status() -> dict[str, object]:
         "chain_length": len(blockchain.chain),
         "pending_transactions": len(blockchain.current_transactions),
         "nodes": sorted(blockchain.nodes),
+        "storage_backend": state_store.backend_name,
     }
 
 
