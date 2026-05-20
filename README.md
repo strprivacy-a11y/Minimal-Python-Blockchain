@@ -25,9 +25,12 @@
 - `app/static/*` : UI ที่ backend เสิร์ฟที่ `/ui`
 - `index.py` : Vercel entrypoint สำหรับ backend deployment
 - `frontend/*` : static frontend สำหรับ deploy แยกบน Vercel
+- `vercel.json` : config สำหรับ deploy repo root เป็น Vercel FastAPI demo
+- `frontend/vercel.json` : config สำหรับ deploy `frontend/` เป็น static Vercel site
 - `render.yaml` : ตัวอย่าง config สำหรับ Render
 - `railway.json` : ตัวอย่าง config สำหรับ Railway
 - `Procfile` : start command สำหรับ PaaS ที่รองรับ Procfile
+- `.github/workflows/ci.yml` : GitHub Actions สำหรับ syntax/config checks
 
 ## ติดตั้ง
 
@@ -70,8 +73,9 @@ http://127.0.0.1:8000/ui
 
 1. import repo นี้เข้า Vercel
 2. ใช้ root directory เป็น `/`
-3. deploy
-4. เปิด `https://your-project.vercel.app/ui`
+3. Vercel จะอ่าน `vercel.json` ที่ repo root
+4. deploy
+5. เปิด `https://your-project.vercel.app/ui`
 
 ### ทางที่ 2: Deploy UI บน Vercel และ deploy backend บน Render หรือ Railway
 
@@ -86,6 +90,7 @@ backend:
 frontend:
 
 - ใช้โฟลเดอร์ `frontend/` เป็น project root บน Vercel
+- Vercel จะอ่าน `frontend/vercel.json`
 - แก้ `frontend/config.js` ให้ชี้ไป backend URL จริงก่อน deploy
 - หลัง deploy หน้า UI จะยิง API ไปยัง backend ที่ตั้งไว้
 
@@ -184,3 +189,4 @@ curl -X POST http://127.0.0.1:8000/nodes/resolve
 - ถ้า `python3 -m venv` ใช้ไม่ได้บนเครื่องนี้ สามารถติดตั้งแพ็กเกจแบบ local user แทนได้ด้วย `python3 -m pip install --user --break-system-packages -r requirements.txt`
 - ถ้าจะใช้ Vercel แบบแยก frontend/backend ให้ตั้งค่า backend URL ใน `frontend/config.js` ก่อน deploy
 - ถ้าจะใช้ Vercel แบบ backend เดียวทั้ง UI และ API ให้เปิดที่ `/ui` ไม่ใช่ `/`
+- GitHub Actions จะรันเช็ก syntax ของ Python และ shell script ทุก push/PR
