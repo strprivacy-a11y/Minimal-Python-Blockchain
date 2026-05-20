@@ -1,7 +1,7 @@
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -38,6 +38,34 @@ def root() -> dict[str, str]:
         "message": "Blockchain simulator is running.",
         "node_id": node_id,
         "storage_backend": state_store.backend_name,
+    }
+
+
+@app.get("/healthz")
+def healthz() -> dict[str, str]:
+    return {
+        "status": "ok",
+        "service": "minimal-python-blockchain",
+    }
+
+
+@app.get("/readyz")
+def readyz() -> dict[str, object]:
+    is_ready, detail = state_store.is_ready()
+    if not is_ready:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail={
+                "status": "not_ready",
+                "storage_backend": state_store.backend_name,
+                "detail": detail,
+            },
+        )
+
+    return {
+        "status": "ready",
+        "storage_backend": state_store.backend_name,
+        "detail": detail,
     }
 
 

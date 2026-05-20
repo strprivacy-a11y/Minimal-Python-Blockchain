@@ -16,11 +16,13 @@
 - ลงทะเบียนโหนดอื่น
 - เรียก consensus แบบง่ายเพื่อ sync chain ที่ยาวกว่า
 - ใช้งานผ่านหน้า UI ที่รันจาก backend เดียวกัน หรือแยก deploy เป็น static frontend ได้
+- รองรับ optional persistence ผ่าน Redis หรือ Postgres
 
 ## โครงสร้าง
 
 - `app/main.py` : FastAPI routes
 - `app/blockchain.py` : แกน blockchain และ consensus
+- `app/storage.py` : persistence backend abstraction สำหรับ memory, Redis, Postgres
 - `app/schemas.py` : request schemas
 - `app/static/*` : UI ที่ backend เสิร์ฟที่ `/ui`
 - `index.py` : Vercel entrypoint สำหรับ backend deployment
@@ -86,6 +88,13 @@ REDIS_URL=redis://...
 BLOCKCHAIN_STATE_KEY=minimal-python-blockchain:state
 ```
 
+หรือใช้ Postgres:
+
+```text
+DATABASE_URL=postgresql://...
+BLOCKCHAIN_STATE_KEY=minimal-python-blockchain:state
+```
+
 ### ทางที่ 2: Deploy UI บน Vercel และ deploy backend บน Render หรือ Railway
 
 เหมาะกับการใช้งานจริงกว่า เพราะ backend จะรันเป็น service ต่อเนื่อง
@@ -95,7 +104,7 @@ backend:
 - ใช้ root repo นี้บน Render หรือ Railway
 - start command คือ `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 - มีไฟล์ `render.yaml`, `railway.json`, `Procfile` ให้แล้ว
-- ถ้าต้องการ persistence ข้าม restart ให้ตั้ง `REDIS_URL`
+- ถ้าต้องการ persistence ข้าม restart ให้ตั้ง `REDIS_URL` หรือ `DATABASE_URL`
 
 frontend:
 
@@ -197,6 +206,18 @@ curl http://127.0.0.1:8000/chain
 curl http://127.0.0.1:8000/status
 ```
 
+### 3.2 health check
+
+```bash
+curl http://127.0.0.1:8000/healthz
+```
+
+### 3.3 readiness check
+
+```bash
+curl http://127.0.0.1:8000/readyz
+```
+
 ### 4. ลงทะเบียนโหนดอื่น
 
 ```bash
@@ -222,4 +243,6 @@ curl -X POST http://127.0.0.1:8000/nodes/resolve
 - ถ้าจะใช้ Vercel แบบแยก frontend/backend ให้ตั้งค่า backend URL ใน `frontend/config.js` ก่อน deploy
 - ถ้าจะใช้ Vercel แบบ backend เดียวทั้ง UI และ API ให้เปิดที่ `/ui` ไม่ใช่ `/`
 - GitHub Actions จะรันเช็ก syntax ของ Python และ shell script ทุก push/PR
-- ถ้าตั้ง `REDIS_URL` ระบบจะพยายามเก็บ `chain`, `pending transactions`, และ `nodes` ลง Redis
+- storage backend จะเลือกตามลำดับนี้: `REDIS_URL` -> `DATABASE_URL` -> memory
+- ถ้าตั้ง `REDIS_URL` หรือ `DATABASE_URL` ระบบจะพยายามเก็บ `chain`, `pending transactions`, และ `nodes` ลง storage นั้น
+- `/healthz` ใช้เช็กว่า process ขึ้นแล้ว ส่วน `/readyz` ใช้เช็กว่า storage backend พร้อมใช้งานจริง
