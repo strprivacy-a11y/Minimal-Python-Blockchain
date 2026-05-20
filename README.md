@@ -105,10 +105,11 @@ docker compose --profile postgres up --build
 
 1. import repo นี้เข้า Vercel
 2. ใช้ root directory เป็น `/`
-3. Vercel จะอ่าน `vercel.json` ที่ repo root
+3. Vercel จะใช้ FastAPI zero-config จาก `index.py` ที่ repo root
 4. Vercel จะอ่าน `.python-version` เพื่อเลือก Python `3.12`
-5. deploy
-6. เปิด `https://your-project.vercel.app/ui`
+5. `vercel.json` ถูกเก็บไว้แบบ minimal และไม่ได้ผูก `functions` pattern
+6. deploy
+7. เปิด `https://your-project.vercel.app/ui`
 
 ถ้าต้องการใช้ state ที่ไม่หายง่าย ให้ตั้ง environment variable:
 
