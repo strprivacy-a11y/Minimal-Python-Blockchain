@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.blockchain import Blockchain
-from app.schemas import MessageResponse, NodeList, TransactionCreate
+from app.schemas import BlockchainState, MessageResponse, NodeList, TransactionCreate
 from app.storage import create_state_store
 
 
@@ -92,6 +92,29 @@ def get_chain() -> dict[str, object]:
     return {
         "chain": blockchain.chain,
         "length": len(blockchain.chain),
+    }
+
+
+@app.get("/backup")
+def backup_state() -> dict[str, object]:
+    return {
+        "message": "Blockchain state exported successfully",
+        "storage_backend": state_store.backend_name,
+        "state": blockchain.export_state(),
+    }
+
+
+@app.post("/restore")
+def restore_state(payload: BlockchainState) -> dict[str, object]:
+    try:
+        restored_state = blockchain.import_state(payload.model_dump())
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+    return {
+        "message": "Blockchain state restored successfully",
+        "storage_backend": state_store.backend_name,
+        "state": restored_state,
     }
 
 

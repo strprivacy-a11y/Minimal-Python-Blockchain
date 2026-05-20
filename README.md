@@ -26,6 +26,9 @@
 - `app/schemas.py` : request schemas
 - `app/static/*` : UI ที่ backend เสิร์ฟที่ `/ui`
 - `index.py` : Vercel entrypoint สำหรับ backend deployment
+- `Dockerfile` : container image สำหรับ FastAPI app
+- `compose.yaml` : local stack สำหรับ app, Redis, Postgres
+- `.env.example` : ตัวอย่าง environment variables สำหรับ storage backend
 - `frontend/*` : static frontend สำหรับ deploy แยกบน Vercel
 - `vercel.json` : config สำหรับ deploy repo root เป็น Vercel FastAPI demo
 - `frontend/vercel.json` : config สำหรับ deploy `frontend/` เป็น static Vercel site
@@ -54,6 +57,30 @@ uvicorn app.main:app --reload --port 8000
 
 ```text
 http://127.0.0.1:8000/ui
+```
+
+## รันด้วย Docker
+
+### app อย่างเดียว
+
+```bash
+docker compose up --build
+```
+
+### app + Redis persistence
+
+```bash
+cp .env.example .env
+printf 'REDIS_URL=redis://redis:6379/0\n' >> .env
+docker compose --profile redis up --build
+```
+
+### app + Postgres persistence
+
+```bash
+cp .env.example .env
+printf 'DATABASE_URL=postgresql://blockchain:blockchain@postgres:5432/blockchain\n' >> .env
+docker compose --profile postgres up --build
 ```
 
 ## Deploy ได้ 2 ทาง
@@ -218,6 +245,32 @@ curl http://127.0.0.1:8000/healthz
 curl http://127.0.0.1:8000/readyz
 ```
 
+### 3.4 backup state
+
+```bash
+curl http://127.0.0.1:8000/backup
+```
+
+### 3.5 restore state
+
+```bash
+curl -X POST http://127.0.0.1:8000/restore \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chain": [
+      {
+        "index": 1,
+        "timestamp": 1,
+        "transactions": [],
+        "proof": 100,
+        "previous_hash": "1"
+      }
+    ],
+    "current_transactions": [],
+    "nodes": []
+  }'
+```
+
 ### 4. ลงทะเบียนโหนดอื่น
 
 ```bash
@@ -246,3 +299,4 @@ curl -X POST http://127.0.0.1:8000/nodes/resolve
 - storage backend จะเลือกตามลำดับนี้: `REDIS_URL` -> `DATABASE_URL` -> memory
 - ถ้าตั้ง `REDIS_URL` หรือ `DATABASE_URL` ระบบจะพยายามเก็บ `chain`, `pending transactions`, และ `nodes` ลง storage นั้น
 - `/healthz` ใช้เช็กว่า process ขึ้นแล้ว ส่วน `/readyz` ใช้เช็กว่า storage backend พร้อมใช้งานจริง
+- `/backup` และ `/restore` ใช้ export/import state ระหว่าง environment หรือใช้กู้คืนข้อมูลแบบ manual

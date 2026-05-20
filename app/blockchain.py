@@ -41,6 +41,32 @@ class Blockchain:
             }
         )
 
+    def export_state(self) -> dict[str, Any]:
+        return {
+            "chain": self.chain,
+            "current_transactions": self.current_transactions,
+            "nodes": sorted(self.nodes),
+        }
+
+    def import_state(self, payload: dict[str, Any]) -> dict[str, Any]:
+        chain = payload.get("chain")
+        current_transactions = payload.get("current_transactions")
+        nodes = payload.get("nodes")
+
+        if not isinstance(chain, list) or not self.is_valid_chain(chain):
+            raise ValueError("Invalid chain payload")
+        if not isinstance(current_transactions, list):
+            raise ValueError("Invalid current_transactions payload")
+        if not isinstance(nodes, list):
+            raise ValueError("Invalid nodes payload")
+
+        normalized_nodes = {self.normalize_node_address(node) for node in nodes}
+        self.chain = chain
+        self.current_transactions = current_transactions
+        self.nodes = normalized_nodes
+        self._persist_state()
+        return self.export_state()
+
     def register_node(self, address: str) -> str:
         normalized = self.normalize_node_address(address)
         self.nodes.add(normalized)

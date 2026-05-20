@@ -16,3 +16,8 @@ class MessageResponse(BaseModel):
 
     message: str
 
+
+class BlockchainState(BaseModel):
+    chain: list[dict]
+    current_transactions: list[dict]
+    nodes: list[str]
