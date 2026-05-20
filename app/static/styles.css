@@ -117,7 +117,8 @@ h2 {
 }
 
 .node-toolbar,
-.inline-form {
+.inline-form,
+.button-row {
   display: flex;
   gap: 0.75rem;
   align-items: end;
@@ -193,6 +194,10 @@ label span {
 .stack {
   display: grid;
   gap: 0.85rem;
+}
+
+.button-row {
+  align-items: center;
 }
 
 input,

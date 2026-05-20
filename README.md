@@ -31,6 +31,7 @@
 - `.env.example` : ตัวอย่าง environment variables สำหรับ storage backend
 - `frontend/*` : static frontend สำหรับ deploy แยกบน Vercel
 - `vercel.json` : config สำหรับ deploy repo root เป็น Vercel FastAPI demo
+- `.python-version` : pin Python version for Vercel Python runtime
 - `frontend/vercel.json` : config สำหรับ deploy `frontend/` เป็น static Vercel site
 - `render.yaml` : ตัวอย่าง config สำหรับ Render
 - `railway.json` : ตัวอย่าง config สำหรับ Railway
@@ -105,8 +106,9 @@ docker compose --profile postgres up --build
 1. import repo นี้เข้า Vercel
 2. ใช้ root directory เป็น `/`
 3. Vercel จะอ่าน `vercel.json` ที่ repo root
-4. deploy
-5. เปิด `https://your-project.vercel.app/ui`
+4. Vercel จะอ่าน `.python-version` เพื่อเลือก Python `3.12`
+5. deploy
+6. เปิด `https://your-project.vercel.app/ui`
 
 ถ้าต้องการใช้ state ที่ไม่หายง่าย ให้ตั้ง environment variable:
 

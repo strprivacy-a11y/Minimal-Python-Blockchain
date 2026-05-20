@@ -15,6 +15,11 @@ const mineButton = document.querySelector("#mine-button");
 const resolveButton = document.querySelector("#resolve-button");
 const nodeSelect = document.querySelector("#node-select");
 const useCurrentNodeButton = document.querySelector("#use-current-node");
+const exportStateButton = document.querySelector("#export-state");
+const downloadBackupButton = document.querySelector("#download-backup");
+const restoreForm = document.querySelector("#restore-form");
+const restoreFileInput = document.querySelector("#restore-file");
+const restoreJsonInput = document.querySelector("#restore-json");
 const logPanel = document.querySelector("#response-log");
 const transactionsList = document.querySelector("#transactions-list");
 const nodesList = document.querySelector("#nodes-list");
@@ -149,6 +154,21 @@ async function apiFetch(path, options = {}) {
   }
 
   return data;
+}
+
+async function apiFetchRaw(path, options = {}) {
+  const response = await fetch(`${activeBaseUrl}${path}`, options);
+  if (!response.ok) {
+    const text = await response.text();
+    let data = {};
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { detail: text || `Request failed: ${response.status}` };
+    }
+    throw new Error(data.detail || data.message || `Request failed: ${response.status}`);
+  }
+  return response;
 }
 
 function renderEmpty(target, message) {
@@ -355,6 +375,63 @@ resolveButton.addEventListener("click", async () => {
         method: "POST",
       }),
     resolveButton
+  );
+});
+
+exportStateButton.addEventListener("click", async () => {
+  await handleAction(
+    "State exported",
+    () => apiFetch("/backup"),
+    exportStateButton
+  );
+});
+
+downloadBackupButton.addEventListener("click", async () => {
+  downloadBackupButton.disabled = true;
+  try {
+    const response = await apiFetchRaw("/backup/file");
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = downloadUrl;
+    anchor.download = "blockchain-backup.json";
+    anchor.click();
+    window.URL.revokeObjectURL(downloadUrl);
+    writeLog("Backup file downloaded", { active_base_url: activeBaseUrl });
+  } catch (error) {
+    writeLog("Backup download failed", { error: error.message });
+    window.alert(error.message);
+  } finally {
+    downloadBackupButton.disabled = false;
+  }
+});
+
+restoreFileInput.addEventListener("change", async (event) => {
+  const [file] = event.target.files || [];
+  if (!file) {
+    return;
+  }
+  restoreJsonInput.value = await file.text();
+});
+
+restoreForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  let payload;
+  try {
+    payload = JSON.parse(restoreJsonInput.value);
+  } catch {
+    window.alert("Restore JSON is invalid.");
+    return;
+  }
+
+  await handleAction(
+    "State restored",
+    () =>
+      apiFetch("/restore", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    restoreForm.querySelector("button[type='submit']")
   );
 });
 

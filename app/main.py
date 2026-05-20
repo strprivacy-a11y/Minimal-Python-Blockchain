@@ -1,9 +1,10 @@
+import json
 from pathlib import Path
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from app.blockchain import Blockchain
@@ -102,6 +103,22 @@ def backup_state() -> dict[str, object]:
         "storage_backend": state_store.backend_name,
         "state": blockchain.export_state(),
     }
+
+
+@app.get("/backup/file")
+def backup_state_file() -> Response:
+    payload = {
+        "message": "Blockchain state exported successfully",
+        "storage_backend": state_store.backend_name,
+        "state": blockchain.export_state(),
+    }
+    return Response(
+        content=json.dumps(payload, indent=2),
+        media_type="application/json",
+        headers={
+            "Content-Disposition": 'attachment; filename="blockchain-backup.json"',
+        },
+    )
 
 
 @app.post("/restore")

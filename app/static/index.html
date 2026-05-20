@@ -140,6 +140,31 @@
 
       <section class="card">
         <div class="section-head">
+          <h2>State Tools</h2>
+          <div class="button-row">
+            <button class="ghost" id="export-state" type="button">Export State</button>
+            <button class="ghost" id="download-backup" type="button">Download Backup</button>
+          </div>
+        </div>
+        <form id="restore-form" class="stack">
+          <label>
+            <span>Restore JSON</span>
+            <textarea
+              id="restore-json"
+              name="restore-json"
+              rows="8"
+              placeholder='{"chain":[...],"current_transactions":[],"nodes":[]}'
+            ></textarea>
+          </label>
+          <div class="button-row">
+            <input id="restore-file" type="file" accept="application/json,.json" />
+            <button id="restore-state" type="submit">Restore State</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
           <h2>Blockchain</h2>
           <button class="ghost" id="refresh-chain" type="button">Reload</button>
         </div>
