@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blockchain Simulator UI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero card">
+        <div>
+          <p class="eyebrow">LOCAL NODE CONSOLE :: VERCEL UI</p>
+          <h1>Blockchain Simulator</h1>
+          <p class="lede">
+            static frontend mode. point this UI at a Render, Railway, or any FastAPI backend.
+          </p>
+          <div class="node-toolbar">
+            <label class="inline-field">
+              <span>Active Node</span>
+              <select id="node-select"></select>
+            </label>
+            <button id="use-current-node" class="ghost" type="button">Use Current Origin</button>
+          </div>
+          <form id="quick-node-form" class="inline-form">
+            <input
+              id="quick-node-input"
+              name="quick-node"
+              placeholder="https://your-backend.example.com"
+              aria-label="Add node endpoint"
+            />
+            <button type="submit">Add Node Target</button>
+          </form>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span>Active Base URL</span>
+            <strong id="active-base-url">-</strong>
+          </div>
+          <div class="stat">
+            <span>Node ID</span>
+            <strong id="node-id">-</strong>
+          </div>
+          <div class="stat accent-stat">
+            <span>Difficulty</span>
+            <strong id="difficulty">-</strong>
+          </div>
+          <div class="stat">
+            <span>Chain Length</span>
+            <strong id="chain-length">-</strong>
+          </div>
+          <div class="stat">
+            <span>Pending TX</span>
+            <strong id="pending-count">-</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <div class="section-head">
+            <h2>Create Transaction</h2>
+            <button class="ghost" id="refresh-all-top" type="button">Refresh</button>
+          </div>
+          <form id="transaction-form" class="stack">
+            <label>
+              <span>Sender</span>
+              <input name="sender" placeholder="alice-wallet" required />
+            </label>
+            <label>
+              <span>Recipient</span>
+              <input name="recipient" placeholder="bob-wallet" required />
+            </label>
+            <label>
+              <span>Amount</span>
+              <input name="amount" type="number" min="0.0001" step="0.0001" placeholder="25.5" required />
+            </label>
+            <button type="submit">Add Transaction</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <div class="section-head">
+            <h2>Mining</h2>
+            <span class="chip">Proof of Work</span>
+          </div>
+          <p class="panel-copy">
+            reward transactions are added automatically by the backend after successful mining.
+          </p>
+          <button id="mine-button" type="button" class="accent">Mine Next Block</button>
+          <div class="mini-grid">
+            <div class="mini-panel">
+              <span>Latest Block</span>
+              <strong id="latest-block">-</strong>
+            </div>
+            <div class="mini-panel">
+              <span>Known Peers</span>
+              <strong id="peer-count">-</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="section-head">
+            <h2>Peer Nodes</h2>
+            <button class="ghost" id="resolve-button" type="button">Resolve Chain</button>
+          </div>
+          <form id="nodes-form" class="stack">
+            <label>
+              <span>Nodes</span>
+              <textarea
+                name="nodes"
+                rows="4"
+                placeholder="https://backend-a.example.com&#10;https://backend-b.example.com"
+                required
+              ></textarea>
+            </label>
+            <button type="submit">Register Nodes</button>
+          </form>
+        </article>
+      </section>
+
+      <section class="grid lower-grid">
+        <article class="card wide">
+          <div class="section-head">
+            <h2>Pending Transactions</h2>
+            <button class="ghost" id="refresh-transactions" type="button">Reload</button>
+          </div>
+          <div id="transactions-list" class="list"></div>
+        </article>
+
+        <article class="card wide">
+          <div class="section-head">
+            <h2>Registered Nodes</h2>
+            <button class="ghost" id="refresh-nodes" type="button">Reload</button>
+          </div>
+          <div id="nodes-list" class="list"></div>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Blockchain</h2>
+          <button class="ghost" id="refresh-chain" type="button">Reload</button>
+        </div>
+        <div id="chain-visual" class="chain-visual"></div>
+        <div id="chain-list" class="chain-list"></div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Response Log</h2>
+          <button class="ghost" id="clear-log" type="button">Clear</button>
+        </div>
+        <pre id="response-log" class="response-log">UI ready.</pre>
+      </section>
+    </main>
+
+    <script src="./config.js"></script>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
